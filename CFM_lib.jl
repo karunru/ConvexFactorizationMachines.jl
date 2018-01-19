@@ -33,7 +33,6 @@ mutable struct CFM
   CFM(num_iter, reg_W) = new(num_iter, reg_W, Float64[], Array{Float64}(0,0))
 end
 
-# user::movie::rating::timestamp
 function train(model::CFM, X, Y)
   X = convert(SparseMatrixCSC{Float64,Int64}, X)
   Y = Array(Y)
@@ -52,9 +51,6 @@ function train(model::CFM, X, Y)
   w = zeros(d+1, 1)
   global fval = zeros(T)
 
-  #Preconditioner
-  M = diagm(sparse(1 ./ (sum(Z, 1) + 1e-8)))
-
   for t in 1:T
     if t != 1
       tmp = X * model.U[:,1:t]
@@ -66,14 +62,14 @@ function train(model::CFM, X, Y)
     ZY = Z' * (Y - fQ)
 
     #Conjugate Gradient: Solve Zw = Y
-    # model.w = cg!(w, Z*Z', ZY, Pl=M, tol=1e-6, maxiter=1000)
-    wout = cg!(w, Z'*Z, ZY, tol=1e-6, maxiter=1000)
+    # wout = cg!(w, Z'*Z, ZY, tol=1e-6, maxiter=1000)
+    wout = lsqr(Z'*Z, ZY)
     model.w = vec(wout)
 
     tr_err = Y - Z*w -fQ
 
     #Frank-Wolfe update: eigs(X diag(tr_err) X^t, 1)
-    pout = eigs(X'*diagm(vec(tr_err))*X, nev=1, which=:LR, maxiter = 1000, tol = 1e-1)[2]
+    pout = eigs(X'*spdiagm(sparsevec(tr_err))*X, nev=1, which=:LR, maxiter = 1000, tol = 1e-1)[2]
     p = vec(real(pout))
 
     #Optimal step size
@@ -100,9 +96,9 @@ function predicter(model::CFM, X)
 
   #Compute fQ (2-way factor)
   tmp = X * model.U
-  fQ = 0.5 * (sum(tmp .* tmp, 2) - (Xte .* Xte) * sum(cfm_model.U .* cfm_model.U, 2))
+  fQ = 0.5 * (sum(tmp .* tmp, 2) - (X .* X) * sum(cfm_model.U .* cfm_model.U, 2))
 
-  Ŷ = model.w[1] + Xte * cfm_model.w[2:end] + fQ
+  Ŷ = model.w[1] + X * cfm_model.w[2:end] + fQ
 
   return Ŷ
 end
