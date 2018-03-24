@@ -96,9 +96,9 @@ function predicter(model::CFM, X)
 
   #Compute fQ (2-way factor)
   tmp = X * model.U
-  fQ = 0.5 * (sum(tmp .* tmp, 2) - (X .* X) * sum(cfm_model.U .* cfm_model.U, 2))
+  fQ = 0.5 * (sum(tmp .* tmp, 2) - (X .* X) * sum(model.U .* model.U, 2))
 
-  Ŷ = model.w[1] + X * cfm_model.w[2:end] + fQ
+  Ŷ = model.w[1] + X * model.w[2:end] + fQ
 
   return Ŷ
 end
