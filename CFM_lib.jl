@@ -62,8 +62,7 @@ function train(model::CFM, X, Y)
     ZY = Z' * (Y - fQ)
 
     #Conjugate Gradient: Solve Zw = Y
-    # wout = cg!(w, Z'*Z, ZY, tol=1e-6, maxiter=1000)
-    wout = lsqr(Z'*Z, ZY)
+    wout = cg!(w, Z'*Z, ZY, tol=1e-6, maxiter=1000)
     model.w = vec(wout)
 
     tr_err = Y - Z*w -fQ
