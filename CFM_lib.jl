@@ -54,7 +54,7 @@ function train(model::CFM, X, Y)
   for t in 1:T
     if t != 1
       tmp = X * model.U[:, 1:t]
-      fQ = 0.5 * (sum(tmp .* tmp, 2) - (X .* X) * sum(model.U[:, 1:t] .* model.U[:, 1:t], 2))
+      fQ = 0.5 * (vec(sum(tmp .* tmp, 2)) - (X .* X) * vec(sum(model.U[:, 1:t] .* model.U[:, 1:t], 2)))
     else
       fQ = zeros(n)
     end
@@ -74,7 +74,7 @@ function train(model::CFM, X, Y)
 
     #Optimal step size
     err = η*((X*p).^2 - (X .* X) * (p .* p)) - fQ
-    α = ((tr_err' * err) / (err' * err))[1]
+    α = ((tr_err' * err) / (err' * err))
 
     #Update
     P[:, t] = √η * p
