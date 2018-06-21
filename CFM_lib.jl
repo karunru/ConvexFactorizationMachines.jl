@@ -52,12 +52,8 @@ function train(model::CFM, X, Y)
   global fval = zeros(T)
 
   for t in 1:T
-    if t != 1
-      tmp = X * model.U[:, 1:t]
-      fQ = 0.5 * (vec(sum(tmp .* tmp, 2)) - (X .* X) * vec(sum(model.U[:, 1:t] .* model.U[:, 1:t], 2)))
-    else
-      fQ = zeros(n)
-    end
+    tmp = X * model.U[:, 1:t]
+    fQ = 0.5 * (vec(sum(tmp .* tmp, 2)) - (X .* X) * vec(sum(model.U[:, 1:t] .* model.U[:, 1:t], 2)))
 
     ZY = Z' * (Y - fQ)
 
