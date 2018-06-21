@@ -53,8 +53,8 @@ function train(model::CFM, X, Y)
 
   for t in 1:T
     if t != 1
-      tmp = X * model.U[:,1:t]
-      fQ = 0.5 * (sum(tmp .* tmp, 2) - (X .* X) * sparse(sum(model.U[:, 1:t] .* model.U[:, 1:t], 2)))
+      tmp = X * model.U[:, 1:t]
+      fQ = 0.5 * (sum(tmp .* tmp, 2) - (X .* X) * sum(model.U[:, 1:t] .* model.U[:, 1:t], 2))
     else
       fQ = zeros(n)
     end
@@ -62,13 +62,14 @@ function train(model::CFM, X, Y)
     ZY = Z' * (Y - fQ)
 
     #Conjugate Gradient: Solve Zw = Y
-    wout = cg!(w, Z'*Z, ZY, tol=1e-6, maxiter=1000)
+    wout = cg!(w, Z'*Z, ZY, tol=1e-6, verbose = false, maxiter=100)
     model.w = vec(wout)
 
     tr_err = Y - Z*w -fQ
 
     #Frank-Wolfe update: eigs(X diag(tr_err) X^t, 1)
-    pout = eigs(X'*spdiagm(sparsevec(tr_err))*X, nev=1, which=:LR, maxiter = 1000, tol = 1e-1)[2]
+    pout = eigs(X'*spdiagm(sparsevec(tr_err))*X, nev=1, which=:LR, maxiter = 300, tol = 1e-1)[2]
+
     p = vec(real(pout))
 
     #Optimal step size
@@ -80,7 +81,7 @@ function train(model::CFM, X, Y)
     λ[1:t-1] -= α * λ[1:t-1]
     λ[t] = max(1e-10, α)
 
-    model.U[:, 1:t] = P[:, 1:t] .* √λ[1:t]'
+    model.U[:, 1:t] = P[:, 1:t] .* sqrt.(λ[1:t])'
 
     #Traning RMSE
     global fval[t] = sqrt(mean(tr_err.^2))
