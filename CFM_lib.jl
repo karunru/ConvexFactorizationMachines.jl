@@ -74,7 +74,7 @@ function train(model::CFM, X, Y)
 
     #Update
     P[:, t] = √η * p
-    λ[1:t-1] -= α * λ[1:t-1]
+    λ[1:t-1] = (1 - α) * λ[1:t-1]
     λ[t] = max(1e-10, α)
 
     model.U[:, 1:t] = P[:, 1:t] .* sqrt.(λ[1:t])'
