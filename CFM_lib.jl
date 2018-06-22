@@ -61,7 +61,7 @@ function train(model::CFM, X, Y)
     wout = cg!(w, Z'*Z, ZY, tol=1e-6, verbose = false, maxiter=100)
     model.w = vec(wout)
 
-    tr_err = Y - Z*w -fQ
+    tr_err = Y - (Z*model.w + fQ)
 
     #Frank-Wolfe update: eigs(X diag(tr_err) X^t, 1)
     pout = eigs(X'*spdiagm(sparsevec(tr_err))*X, nev=1, which=:LR, maxiter = 300, tol = 1e-1)[2]
