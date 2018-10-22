@@ -84,7 +84,17 @@ function train(model::CFM, X, Y)
 
     #fval: training RMSE
     println("iteration:", t, " Training RMSE:", fval[t])
-  end
+
+		tmp = nothing
+		fQ = nothing
+		ZY = nothing
+		wout = nothing
+		tr_err = nothing
+		pout = nothing
+		p = nothing
+		err = nothing
+		α= nothing
+	end
 end
 
 function predicter(model::CFM, X)
